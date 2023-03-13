@@ -34,9 +34,9 @@ int main() {
     while (TRUE) {
         int num_params = read_command(command, parameters);
 
-        if (parameters[0][0] == 'c' && parameters[0][1] == 'd') {
+        if (parameters[0][0] == 'c' && parameters[0][1] == 'd' && parameters[0][2] == '\0') {
             chdir(parameters[1]);
-        } else if (parameters[0][0] == 'e' && parameters[0][1] == 'x' && parameters[0][2] == 'i' && parameters[0][3] == 't') {
+        } else if (parameters[0][0] == 'e' && parameters[0][1] == 'x' && parameters[0][2] == 'i' && parameters[0][3] == 't' && parameters[0][4] == '\0') {
             printf("> Finalizando o mini shell.");
             exit(0);
         } else {
