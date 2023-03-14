@@ -4,13 +4,17 @@
 #include <malloc.h>
 #include <sys/wait.h>
 
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_GRAY "\e[0;37m"
+#define ANSI_COLOR_GREEN "\e[0;32m"
+#define ANSI_COLOR_RESET "\x1b[0m"
 #define TRUE 1
 #define COMMAND_LEN 100
 #define PARAMS_LEN 20
 #define PARAM_LEN 40
 
 int read_command(char *command, char **parameters) {
-    printf("MS:~%s$ ", getcwd(NULL, 100));
+    printf(ANSI_COLOR_RED "MS" ANSI_COLOR_RESET ":" ANSI_COLOR_GREEN "~%s$ " ANSI_COLOR_RESET, getcwd(NULL, 100));
     fgets(command, COMMAND_LEN, stdin);
     int i, cont_params = 0, index_param = 0;
     parameters[0] = malloc(PARAM_LEN);
@@ -37,7 +41,7 @@ int main() {
         if (parameters[0][0] == 'c' && parameters[0][1] == 'd' && parameters[0][2] == '\0') {
             chdir(parameters[1]);
         } else if (parameters[0][0] == 'e' && parameters[0][1] == 'x' && parameters[0][2] == 'i' && parameters[0][3] == 't' && parameters[0][4] == '\0') {
-            printf("> Finalizando o mini shell.");
+            printf("> Finalizando o mini shell.\n");
             exit(0);
         } else {
             pid_t pid = fork();
