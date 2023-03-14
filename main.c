@@ -3,9 +3,9 @@
 #include <unistd.h>
 #include <malloc.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 #define ANSI_COLOR_RED "\x1b[31m"
-#define ANSI_COLOR_GRAY "\e[0;37m"
 #define ANSI_COLOR_GREEN "\e[0;32m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 #define TRUE 1
@@ -30,6 +30,14 @@ int read_command(char *command, char **parameters) {
     }
     parameters[cont_params][index_param] = '\0';
     return cont_params;
+}
+
+void *clean_pointer(char **parameters) {
+    for (int i = 0; i <= 1; i++) {
+        char *temp = parameters[i];
+        parameters[i] = NULL;
+        free(temp);
+    }
 }
 
 int main() {
@@ -67,10 +75,11 @@ int main() {
             }
         }
 
-        for (int i = 0; i <= num_params; i++) {
-            char *temp = parameters[i];
-            parameters[i] = NULL;
-            free(temp);
+        pthread_t a_thread;
+        int res = pthread_create(&a_thread, NULL, (void *(*)(void *)) clean_pointer, parameters);
+        if (res != 0) {
+            perror("> Thread creation failed\n");
+            exit(EXIT_FAILURE);
         }
     }
 }
