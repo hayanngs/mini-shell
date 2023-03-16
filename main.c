@@ -3,48 +3,48 @@
 #include <unistd.h>
 #include <malloc.h>
 #include <sys/wait.h>
-#include <pthread.h>
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\e[0;32m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 #define TRUE 1
+#define FALSE 0
 #define COMMAND_LEN 100
-#define PARAMS_LEN 20
-#define PARAM_LEN 40
+#define PARAMS_LEN 2
+#define PARAM_LEN 50
 
 int read_command(char *command, char **parameters) {
     printf(ANSI_COLOR_RED "MS" ANSI_COLOR_RESET ":" ANSI_COLOR_GREEN "~%s$ " ANSI_COLOR_RESET, getcwd(NULL, 100));
     fgets(command, COMMAND_LEN, stdin);
     int i, cont_params = 0, index_param = 0;
     parameters[0] = malloc(PARAM_LEN);
+    int troca = TRUE, back_ground = FALSE;
     for (i = 0; i < COMMAND_LEN && command[i] != '\n'; i++) {
-        if (command[i] == ' ') {
+        if (command[i] == '&') {
+            back_ground = TRUE;
+        } else if (command[i] == ' ' && troca) {
             parameters[cont_params][index_param] = '\0';
             index_param = 0;
-            cont_params++;
-            parameters[cont_params] = malloc(PARAM_LEN);
+            parameters[++cont_params] = malloc(PARAM_LEN);
+            troca = FALSE;
         } else {
             parameters[cont_params][index_param++] = command[i];
         }
     }
-    parameters[cont_params][index_param] = '\0';
-    return cont_params;
-}
-
-void *clean_pointer(char **parameters) {
-    for (int i = 0; i <= 1; i++) {
-        char *temp = parameters[i];
-        parameters[i] = NULL;
-        free(temp);
+    if (!index_param) {
+        free(parameters[cont_params]);
+        parameters[cont_params] = NULL;
+    } else {
+        parameters[cont_params][index_param] = '\0';
     }
+    return back_ground;
 }
 
 int main() {
     char command[COMMAND_LEN];
     char **parameters = malloc(PARAMS_LEN);
     while (TRUE) {
-        int num_params = read_command(command, parameters);
+        int back_ground = read_command(command, parameters);
 
         if (parameters[0][0] == 'c' && parameters[0][1] == 'd' && parameters[0][2] == '\0') {
             chdir(parameters[1]);
@@ -60,11 +60,12 @@ int main() {
                     perror("> Não foi possível criar um novo processo.");
                     exit(1);
                 case 0:
-                    printf("> Executando o comando '%s'.\n", parameters[0]);
                     execlp(parameters[0], parameters[0], parameters[1], 0);
                     break;
                 default:
-                    waitpid(pid, &status, 0);
+                    if (!back_ground) {
+                        waitpid(pid, &status, 0);
+                    }
                     break;
             }
             printf("> status: %d\n", status);
@@ -75,11 +76,10 @@ int main() {
             }
         }
 
-        pthread_t a_thread;
-        int res = pthread_create(&a_thread, NULL, (void *(*)(void *)) clean_pointer, parameters);
-        if (res != 0) {
-            perror("> Thread creation failed\n");
-            exit(EXIT_FAILURE);
+        for (int i = 0; i <= PARAMS_LEN; i++) {
+            char *temp = parameters[i];
+            parameters[i] = NULL;
+            free(temp);
         }
     }
 }
